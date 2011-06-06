@@ -16,78 +16,60 @@ static void die(const char *msg) {
 }
 
 enum state_t {
-	NONE = 0,
-	R,
-	RG,
-	RGB
+	MLAA_OFF = 0,
+	MLAA_ON
 };
 
 int main(int argc, char **argv) {
 
-	putenv((char *)"vblank_mode=0");
+	putenv((char *) "vblank_mode=0"); // No vsync for us, thanks.
 
 	MyEventReceiver *r = new MyEventReceiver();
 	IrrlichtDevice *dev = createDevice(EDT_OPENGL, core::dimension2d<u32>(1024,768), 32,
 				false, false, false, r);
 	if (!dev) die("Can't initialize Irrlicht");
 
-
 	IVideoDriver *drv = dev->getVideoDriver();
 	ISceneManager *smgr = dev->getSceneManager();
+	ITexture *pic = NULL;
+	bool showpic = false;
+
+	if (argv[1] && access(argv[1], R_OK) == 0) {
+		showpic = true;
+		pic = drv->getTexture(argv[1]);
+	}
 
 	ICameraSceneNode *cam = smgr->addCameraSceneNode();
 	cam->setPosition(vector3df(0, 0, -30));
 	cam->setTarget(vector3df(0,0,0));
-//	smgr->setAmbientLight(SColor(0,60,60,60));
 
-//	ITexture *pic = drv->getTexture("skies.jpg");
-//	ITexture *pic = drv->getTexture("rainbow.png");
 	ITexture *rt1 = drv->addRenderTargetTexture(dimension2d<u32>(1024,768), "rt1");
-	ITexture *rt2 = drv->addRenderTargetTexture(dimension2d<u32>(1024,768), "rt2");
-	ITexture *def = drv->addRenderTargetTexture(dimension2d<u32>(1024,768), "def");
 
-	ScreenQuad *defsq = new ScreenQuad(drv);
-	ScreenQuad *sqr = new ScreenQuad(drv);
-	ScreenQuad *sqrg = new ScreenQuad(drv);
-	ScreenQuad *sqrgb = new ScreenQuad(drv);
-	defsq->SetTexture(pic);
-	sqr->SetTexture(def);
-	sqrg->SetTexture(rt1);
-	sqrgb->SetTexture(rt2);
-	int state = NONE;
+	ScreenQuad *def = new ScreenQuad(drv);
+	ScreenQuad *sq = new ScreenQuad(drv);
+	if (showpic) def->SetTexture(pic);
+	sq->SetTexture(rt1);
+	state_t state = MLAA_OFF;
 
-	IGPUProgrammingServices *gpu = drv->getGPUProgrammingServices();
-	int nogreens = gpu->addHighLevelShaderMaterial(0,0,EVST_VS_1_1,nogreen);
-	int noreds = gpu->addHighLevelShaderMaterial(0,0,EVST_VS_1_1,nored);
-	int noblues = gpu->addHighLevelShaderMaterial(0,0,EVST_VS_1_1,noblue);
-	sqr->SetMaterialType((E_MATERIAL_TYPE) noreds);
-	sqrg->SetMaterialType((E_MATERIAL_TYPE) nogreens);
-	sqrgb->SetMaterialType((E_MATERIAL_TYPE) noblues);
+//	IGPUProgrammingServices *gpu = drv->getGPUProgrammingServices();
+//	int nogreens = gpu->addHighLevelShaderMaterial(0,0,EVST_VS_1_1,nogreen);
+//	sq->SetMaterialType((E_MATERIAL_TYPE) noreds);
 
 	int lastfps = -1;
 	wchar_t cap[10];
 
-	while (dev->run()) { //if (dev->isWindowActive()) {
+	while (dev->run()) {
 		drv->beginScene();
 
+		if (!showpic) smgr->drawAll();
+
 		switch (state) {
-			case NONE:
-				defsq->Render();
+			case MLAA_OFF:
+				def->Render();
 			break;
-			case R:
-				defsq->Render(def);
-				sqr->Render();
-			break;
-			case RG:
-				defsq->Render(def);
-				sqr->Render(rt1);
-				sqrg->Render();
-			break;
-			case RGB:
-				defsq->Render(def);
-				sqr->Render(rt1);
-				sqrg->Render(rt2);
-				sqrgb->Render();
+			case MLAA_ON:
+				def->Render(rt1);
+				sq->Render();
 			break;
 		}
 
@@ -101,18 +83,16 @@ int main(int argc, char **argv) {
 		}
 
 		if (r->IsKeyDown(KEY_KEY_M)) {
-			state++;
-			if (state > RGB) state = NONE;
-			printf("%d\n",state);
+			if (state == MLAA_ON) state = MLAA_OFF;
+			else state = MLAA_ON;
 		}
 
 		usleep(1); // 16
-	} //else usleep(50);
+	}
 
 	dev->drop();
-	delete sqr;
-	delete sqrg;
-	delete sqrgb;
+	delete def;
+	delete sq;
 	delete r;
 	return 0;
 }
