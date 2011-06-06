@@ -1,6 +1,7 @@
 #include <irrlicht/irrlicht.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 using namespace irr;
 using namespace core;
@@ -55,7 +56,10 @@ int main(int argc, char **argv) {
 //	int nogreens = gpu->addHighLevelShaderMaterial(0,0,EVST_VS_1_1,nogreen);
 //	sq->SetMaterialType((E_MATERIAL_TYPE) noreds);
 
-	int lastfps = -1;
+	int lastfps = -1, minfps = 10000;
+	unsigned long long total_frames = 0;
+	struct timeval starttime;
+	gettimeofday(&starttime, NULL);
 	wchar_t cap[10];
 
 	while (dev->run()) {
@@ -76,6 +80,7 @@ int main(int argc, char **argv) {
 		drv->endScene();
 
 		int fps = drv->getFPS();
+		if (minfps > fps) minfps = fps;
 		if (lastfps != fps) {
 			swprintf(cap, 10, L"%d fps", fps);
 			dev->setWindowCaption(cap);
@@ -88,11 +93,20 @@ int main(int argc, char **argv) {
 		}
 
 		usleep(1); // 16
+		total_frames++;
 	}
 
 	dev->drop();
 	delete def;
 	delete sq;
 	delete r;
+
+	struct timeval endtime;
+	gettimeofday(&endtime, NULL);
+	float sec = endtime.tv_sec - starttime.tv_sec;
+	sec += ((float) endtime.tv_usec - starttime.tv_usec) / 1000000;
+
+	printf("Ran %.3fs, average fps %.2f, min %d\n", sec, (float) total_frames/sec, minfps);
+
 	return 0;
 }
