@@ -10,6 +10,7 @@ using namespace scene;
 
 #include "screenquad.h"
 #include "input.h"
+#include "rnd.h"
 
 static void die(const char *msg) {
 	fprintf(stderr,"%s\n",msg);
@@ -32,17 +33,31 @@ int main(int argc, char **argv) {
 
 	IVideoDriver *drv = dev->getVideoDriver();
 	ISceneManager *smgr = dev->getSceneManager();
+	IGPUProgrammingServices *gpu = drv->getGPUProgrammingServices();
+	ICameraSceneNode *cam = NULL;
 	ITexture *pic = NULL;
+	IMeshSceneNode *ball = NULL;
 	bool showpic = false;
 
 	if (argv[1] && access(argv[1], R_OK) == 0) {
 		showpic = true;
 		pic = drv->getTexture(argv[1]);
-	}
 
-	ICameraSceneNode *cam = smgr->addCameraSceneNode();
-	cam->setPosition(vector3df(0, 0, -30));
-	cam->setTarget(vector3df(0,0,0));
+		cam = smgr->addCameraSceneNode();
+		cam->setPosition(vector3df(0, 0, -30));
+		cam->setTarget(vector3df(0,0,0));
+	} else {
+		cam = smgr->addCameraSceneNodeMaya();
+		cam->setTarget(vector3df(0,0,0));
+		ball = smgr->addSphereSceneNode(40,8);
+
+		int ballshader = gpu->addHighLevelShaderMaterial(rnd,0,EVST_VS_1_1,0);
+		ball->setMaterialType((E_MATERIAL_TYPE) ballshader);
+
+		ISceneNodeAnimator *cool = smgr->createRotationAnimator(vector3df(-0.1, 0.1, -0.1));
+		ball->addAnimator(cool);
+		cool->drop();
+	}
 
 	ITexture *rt1 = drv->addRenderTargetTexture(dimension2d<u32>(1024,768), "rt1");
 
@@ -52,7 +67,6 @@ int main(int argc, char **argv) {
 	sq->SetTexture(rt1);
 	state_t state = MLAA_OFF;
 
-//	IGPUProgrammingServices *gpu = drv->getGPUProgrammingServices();
 //	int nogreens = gpu->addHighLevelShaderMaterial(0,0,EVST_VS_1_1,nogreen);
 //	sq->SetMaterialType((E_MATERIAL_TYPE) noreds);
 
@@ -60,19 +74,22 @@ int main(int argc, char **argv) {
 	unsigned long long total_frames = 0;
 	struct timeval starttime;
 	gettimeofday(&starttime, NULL);
-	wchar_t cap[10];
+	wchar_t cap[20];
 
 	while (dev->run()) {
 		drv->beginScene();
 
-		if (!showpic) smgr->drawAll();
-
 		switch (state) {
 			case MLAA_OFF:
-				def->Render();
+				if (showpic) def->Render();
+				else smgr->drawAll();
 			break;
 			case MLAA_ON:
-				def->Render(rt1);
+				if (showpic) def->Render(rt1);
+				else {
+					drv->setRenderTarget(rt1);
+					smgr->drawAll();
+				}
 				sq->Render();
 			break;
 		}
@@ -82,7 +99,7 @@ int main(int argc, char **argv) {
 		int fps = drv->getFPS();
 		if (minfps > fps) minfps = fps;
 		if (lastfps != fps) {
-			swprintf(cap, 10, L"%d fps", fps);
+			swprintf(cap, 20, L"%d fps, MLAA %s", fps, state == MLAA_ON ? "on" : "off");
 			dev->setWindowCaption(cap);
 			lastfps = fps;
 		}
@@ -90,9 +107,11 @@ int main(int argc, char **argv) {
 		if (r->IsKeyDown(KEY_KEY_M)) {
 			if (state == MLAA_ON) state = MLAA_OFF;
 			else state = MLAA_ON;
+
+			lastfps++;
 		}
 
-		usleep(1); // 16
+		usleep(1); // 16?
 		total_frames++;
 	}
 
