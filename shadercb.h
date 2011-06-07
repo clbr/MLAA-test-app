@@ -9,3 +9,13 @@ class blendcb : public IShaderConstantSetCallBack {
 		services->setPixelShaderConstant("areaMap", (const float*)&a, 1);
 	}
 };
+
+class neighcb : public IShaderConstantSetCallBack {
+	public:
+	virtual void OnSetConstants(IMaterialRendererServices* services, s32 udata) {
+		int a = 0;
+		services->setPixelShaderConstant("blendMap", (const float*)&a, 1);
+		a = 1;
+		services->setPixelShaderConstant("colorMap", (const float*)&a, 1);
+	}
+};
