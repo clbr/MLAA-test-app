@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
 		cool->drop();
 	}
 
+	// Set up static defines, RTTs, quads
 	dimension2d<u32> screensize = drv->getScreenSize();
 	char defines[128];
 	snprintf(defines, 128,
@@ -112,6 +113,7 @@ int main(int argc, char **argv) {
 	tmp2 = defines;
 	tmp2 += color1fs;
 
+	// Load shaders
 	int edge = gpu->addHighLevelShaderMaterial(tmp1.c_str(),0,EVST_VS_1_1,tmp2.c_str());
 	sq->SetMaterialType((E_MATERIAL_TYPE) edge);
 
@@ -129,12 +131,14 @@ int main(int argc, char **argv) {
 	edge = gpu->addHighLevelShaderMaterial(tmp1.c_str(),0,EVST_VS_1_1,tmp2.c_str(),0,EPST_PS_1_1,ncb);
 	sq3->SetMaterialType((E_MATERIAL_TYPE) edge);
 
+	// Record start time
 	int lastfps = -1, minfps = 10000;
 	unsigned long long total_frames = 0;
 	struct timeval starttime;
 	gettimeofday(&starttime, NULL);
 	wchar_t cap[20];
 
+	// Main loop
 	while (dev->run()) {
 		drv->beginScene();
 
