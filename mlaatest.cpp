@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 	dimension2d<u32> screensize = drv->getScreenSize();
 	char defines[128];
 	snprintf(defines, 128,
-		"#define PIXEL_SIZE vec2(1.0f / %u.0, 1.0f / %u.0)\n#define MAX_SEARCH_STEPS 8\n#define MAX_DISTANCE 32\n",
+		"#define PIXEL_SIZE vec2(1.0f / %u.0, 1.0f / %u.0)\n#define MAX_SEARCH_STEPS 8.0\n#define MAX_DISTANCE 32.0\n",
 		screensize.Width, screensize.Height);
 
 	ITexture *rt1 = drv->addRenderTargetTexture(dimension2d<u32>(1024,768), "rt1");
