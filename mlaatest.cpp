@@ -6,11 +6,13 @@
 using namespace irr;
 using namespace core;
 using namespace video;
+using namespace io;
 using namespace scene;
 
 #include "screenquad.h"
 #include "input.h"
 #include "rnd.h"
+#include "areamap.h"
 
 static void die(const char *msg) {
 	fprintf(stderr,"%s\n",msg);
@@ -38,6 +40,11 @@ int main(int argc, char **argv) {
 	ITexture *pic = NULL;
 	IMeshSceneNode *ball = NULL;
 	bool showpic = false;
+
+	IReadFile *areamap = createMemoryReadFile(AreaMap33, sizeof(AreaMap33), "AreaMap33", false);
+	if (!areamap) die("Failed to load areamap");
+	ITexture *areamaptex = drv->getTexture(areamap);
+	areamap->drop();
 
 	if (argv[1] && access(argv[1], R_OK) == 0) {
 		showpic = true;
