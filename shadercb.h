@@ -1,6 +1,6 @@
 class blendcb : public IShaderConstantSetCallBack {
 	public:
-	virtual void OnSetConstants(IMaterialRendererServices* services, s32 udata) {
+	virtual void OnSetConstants(IMaterialRendererServices* services, s32) {
 		int a = 0;
 		services->setPixelShaderConstant("edgesMapL", (const float*)&a, 1);
 		a = 1;
@@ -12,7 +12,7 @@ class blendcb : public IShaderConstantSetCallBack {
 
 class neighcb : public IShaderConstantSetCallBack {
 	public:
-	virtual void OnSetConstants(IMaterialRendererServices* services, s32 udata) {
+	virtual void OnSetConstants(IMaterialRendererServices* services, s32) {
 		int a = 0;
 		services->setPixelShaderConstant("blendMap", (const float*)&a, 1);
 		a = 1;

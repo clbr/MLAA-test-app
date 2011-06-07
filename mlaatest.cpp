@@ -188,6 +188,9 @@ int main(int argc, char **argv) {
 	delete bcb;
 	delete def;
 	delete sq;
+	delete sq2;
+	delete sq3;
+	delete norm;
 	delete r;
 
 	struct timeval endtime;
