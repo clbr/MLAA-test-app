@@ -56,15 +56,7 @@ float SearchYUp(vec2 texcoord) {
 
 
 vec2 round(vec2 invec) {
-	vec2 outvec;
-
-	if (fract(invec.x) >= 0.5) outvec.x = ceil(invec.x);
-	else outvec.x = floor(invec.x);
-
-	if (fract(invec.y) >= 0.5) outvec.y = ceil(invec.y);
-	else outvec.y = floor(invec.y);
-
-	return outvec;
+	return vec2(floor(abs(invec) + vec2(0.5)) * sign(invec));
 }
 
 vec2 Area(vec2 distance, float e1, float e2) {
