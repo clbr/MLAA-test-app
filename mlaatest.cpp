@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <GL/gl.h>
 
 using namespace irr;
 using namespace core;
@@ -137,6 +138,7 @@ int main(int argc, char **argv) {
 	struct timeval starttime;
 	gettimeofday(&starttime, NULL);
 	wchar_t cap[20];
+	glEnable(GL_STENCIL_TEST);
 
 	// Main loop
 	while (dev->run()) {
@@ -153,12 +155,23 @@ int main(int argc, char **argv) {
 					drv->setRenderTarget(rt1);
 					smgr->drawAll();
 				}
-				sq->Render(rt2);
-				sq2->Render(rt3);
 
-				// Draw the initial image to the framebuffer, smoothing will be overlaid
-				norm->Render();
+				glClear(GL_STENCIL_BUFFER_BIT);
+				glStencilFunc(GL_ALWAYS, 1, ~0);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+				sq->Render(rt2);
+
+				glStencilFunc(GL_EQUAL, 1, ~0);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				sq2->Render(rt3);
+				drv->setRenderTarget(rt1, false, false);
+
+				// Overlay the smoothed edges on the initial image
 				sq3->Render(false);
+
+				glStencilFunc(GL_ALWAYS, 1, ~0);
+				// Blit the final image to the framebuffer
+				norm->Render();
 			break;
 		}
 
