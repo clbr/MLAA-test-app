@@ -98,13 +98,16 @@ int main(int argc, char **argv) {
 	ScreenQuad *norm = new ScreenQuad(drv);
 	if (showpic) def->SetTexture(pic);
 	sq->SetTexture(rt1);
+	sq->GetMaterial().setFlag(EMF_BILINEAR_FILTER, false);
 	norm->SetTexture(rt1);
+	norm->GetMaterial().setFlag(EMF_BILINEAR_FILTER, false);
 
 	sq2->SetTexture(rt2);
 	sq2->SetTexture(rt2, 1);
 	sq2->SetTexture(areamaptex, 2);
 
 	sq3->SetTexture(rt3);
+	sq3->GetMaterial().setFlag(EMF_BILINEAR_FILTER, false);
 	sq3->SetTexture(rt1,1);
 	state_t state = MLAA_OFF;
 
