@@ -96,7 +96,7 @@ void main() {
 		vec2 d = vec2(SearchYUp(gl_TexCoord[0].xy), SearchYDown(gl_TexCoord[0].xy));
 
 		// Now fetch the crossing edges (yet again):
-		vec4 coords = vec4(-0.25, d.x, -0.25, d.y + 1.0) * PIXEL_SIZE.xyxy + gl_TexCoord[0].xyxy;
+		vec4 coords = vec4(-0.25, d.x, -0.25, d.y - 1.0) * PIXEL_SIZE.xyxy + gl_TexCoord[0].xyxy;
 		float e1 = texture2DLod(edgesMapL, coords.xy, 0.0).g;
 		float e2 = texture2DLod(edgesMapL, coords.zw, 0.0).g;
 
