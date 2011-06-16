@@ -80,8 +80,8 @@ void main() {
 		vec2 d = vec2(SearchXLeft(gl_TexCoord[0].xy), SearchXRight(gl_TexCoord[0].xy));
 
 		// Now fetch the crossing edges. Instead of sampling between edgels, we
-		// sample at -0.25, to be able to discern what value has each edgel:
-		vec4 coords = vec4(d.x, -0.25, d.y + 1.0, -0.25) * PIXEL_SIZE.xyxy + gl_TexCoord[0].xyxy;
+		// sample at 0.25, to be able to discern what value has each edgel:
+		vec4 coords = vec4(d.x, 0.25, d.y + 1.0, 0.25) * PIXEL_SIZE.xyxy + gl_TexCoord[0].xyxy;
 		float e1 = texture2DLod(edgesMapL, coords.xy, 0.0).r;
 		float e2 = texture2DLod(edgesMapL, coords.zw, 0.0).r;
 
