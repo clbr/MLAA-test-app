@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
 	sq2->SetTexture(rt2);
 	sq2->SetTexture(rt2, 1);
 	sq2->SetTexture(areamaptex, 2);
+	sq2->GetMaterial().TextureLayer[2].BilinearFilter = false;
 
 	sq3->SetTexture(rt3);
 	sq3->GetMaterial().setFlag(EMF_BILINEAR_FILTER, false);
