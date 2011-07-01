@@ -138,11 +138,12 @@ int main(int argc, char **argv) {
 
 	// Record start time
 	int lastfps = -1, minfps = 10000;
-	unsigned long long total_frames = 0;
-	struct timeval starttime;
+	unsigned long long total_frames = 0, fxtimer = 0, tmplong, onframes = 0;
+	struct timeval starttime, tick1, tick2;
 	gettimeofday(&starttime, NULL);
 	wchar_t cap[20];
 	glEnable(GL_STENCIL_TEST);
+	unsigned char firstrun = 1; // To avoid the glsl compiler in the timing
 
 	// Main loop
 	while (dev->run()) {
@@ -160,6 +161,9 @@ int main(int argc, char **argv) {
 					smgr->drawAll();
 				}
 
+				gettimeofday(&tick1, NULL);
+
+
 				glClear(GL_STENCIL_BUFFER_BIT);
 				glStencilFunc(GL_ALWAYS, 1, ~0);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -173,9 +177,20 @@ int main(int argc, char **argv) {
 				// Overlay the smoothed edges on the initial image
 				sq3->Render(false);
 
-				glStencilFunc(GL_ALWAYS, 1, ~0);
 				// Blit the final image to the framebuffer
+				glStencilFunc(GL_ALWAYS, 1, ~0);
 				norm->Render();
+
+				if (!firstrun) {
+					gettimeofday(&tick2, NULL);
+					tmplong = (tick2.tv_sec - tick1.tv_sec) * 10000;
+					tmplong += (tick2.tv_usec - tick1.tv_usec) / 100;
+					fxtimer += tmplong;
+
+					onframes++;
+				} else {
+					firstrun = 0;
+				}
 			break;
 		}
 
@@ -215,7 +230,10 @@ int main(int argc, char **argv) {
 	float sec = endtime.tv_sec - starttime.tv_sec;
 	sec += ((float) endtime.tv_usec - starttime.tv_usec) / 1000000;
 
-	printf("Ran %.3fs, average fps %.2f, min %d\n", sec, (float) total_frames/sec, minfps);
+	printf("\nRan %.3fs, average fps %.2f, min %d\n\n", sec, (float) total_frames/sec, minfps);
+
+	if (onframes)
+		printf("MLAA took on average %.1fms\n", (float) (fxtimer / onframes) / 10.0);
 
 	return 0;
 }
