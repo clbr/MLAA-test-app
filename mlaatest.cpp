@@ -140,6 +140,7 @@ int main(int argc, char **argv) {
 	int lastfps = -1, minfps = 10000;
 	unsigned long long total_frames = 0, fxtimer = 0, tmplong, onframes = 0;
 	struct timeval starttime, tick1, tick2;
+	float glsltime = 0;
 	gettimeofday(&starttime, NULL);
 	wchar_t cap[20];
 	glEnable(GL_STENCIL_TEST);
@@ -155,13 +156,13 @@ int main(int argc, char **argv) {
 				else smgr->drawAll();
 			break;
 			case MLAA_ON:
+				gettimeofday(&tick1, NULL);
+
 				if (showpic) def->Render(rt1);
 				else {
 					drv->setRenderTarget(rt1);
 					smgr->drawAll();
 				}
-
-				gettimeofday(&tick1, NULL);
 
 
 				glClear(GL_STENCIL_BUFFER_BIT);
@@ -190,6 +191,10 @@ int main(int argc, char **argv) {
 					onframes++;
 				} else {
 					firstrun = 0;
+
+					gettimeofday(&tick2, NULL);
+					glsltime = tick2.tv_sec - tick1.tv_sec;
+					glsltime += (tick2.tv_usec - tick1.tv_usec) / 1000000.0;
 				}
 			break;
 		}
@@ -229,11 +234,17 @@ int main(int argc, char **argv) {
 	gettimeofday(&endtime, NULL);
 	float sec = endtime.tv_sec - starttime.tv_sec;
 	sec += ((float) endtime.tv_usec - starttime.tv_usec) / 1000000;
+	printf("\nRan %.3fs, ", sec);
+	sec -= glsltime;
 
-	printf("\nRan %.3fs, average fps %.2f, min %d\n\n", sec, (float) total_frames/sec, minfps);
+	printf("average fps %.2f, min %d\n", (float) total_frames/sec, minfps);
 
-	if (onframes)
+	if (onframes) {
+		printf("\nAverage on fps %.2f, average off fps %.2f\n\n", (float) onframes/(fxtimer/10000.0),
+					(float) (total_frames - onframes)/(sec - (fxtimer/10000.0)));
+
 		printf("MLAA took on average %.1fms\n", (float) (fxtimer / onframes) / 10.0);
+	}
 
 	return 0;
 }
