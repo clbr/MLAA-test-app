@@ -148,6 +148,8 @@ int main(int argc, char **argv) {
 
 	// Main loop
 	while (dev->run()) {
+
+		gettimeofday(&tick1, NULL);
 		drv->beginScene();
 
 		switch (state) {
@@ -156,8 +158,6 @@ int main(int argc, char **argv) {
 				else smgr->drawAll();
 			break;
 			case MLAA_ON:
-				gettimeofday(&tick1, NULL);
-
 				if (showpic) def->Render(rt1);
 				else {
 					drv->setRenderTarget(rt1);
@@ -182,24 +182,26 @@ int main(int argc, char **argv) {
 				glStencilFunc(GL_ALWAYS, 1, ~0);
 				norm->Render();
 
-				if (!firstrun) {
-					gettimeofday(&tick2, NULL);
-					tmplong = (tick2.tv_sec - tick1.tv_sec) * 10000;
-					tmplong += (tick2.tv_usec - tick1.tv_usec) / 100;
-					fxtimer += tmplong;
-
-					onframes++;
-				} else {
-					firstrun = 0;
-
-					gettimeofday(&tick2, NULL);
-					glsltime = tick2.tv_sec - tick1.tv_sec;
-					glsltime += (tick2.tv_usec - tick1.tv_usec) / 1000000.0;
-				}
 			break;
 		}
 
 		drv->endScene();
+
+		if (state == MLAA_ON) {
+			gettimeofday(&tick2, NULL);
+			if (!firstrun) {
+				tmplong = (tick2.tv_sec - tick1.tv_sec) * 10000;
+				tmplong += (tick2.tv_usec - tick1.tv_usec) / 100;
+				fxtimer += tmplong;
+
+				onframes++;
+			} else {
+				firstrun = 0;
+
+				glsltime = tick2.tv_sec - tick1.tv_sec;
+				glsltime += (tick2.tv_usec - tick1.tv_usec) / 1000000.0;
+			}
+		}
 
 		int fps = drv->getFPS();
 		if (minfps > fps) minfps = fps;
@@ -243,7 +245,7 @@ int main(int argc, char **argv) {
 		printf("\nAverage on fps %.2f, average off fps %.2f\n\n", (float) onframes/(fxtimer/10000.0),
 					(float) (total_frames - onframes)/(sec - (fxtimer/10000.0)));
 
-		printf("MLAA took on average %.1fms\n", (float) (fxtimer / onframes) / 10.0);
+//		printf("MLAA took on average %.1fms\n", (float) (fxtimer / onframes) / 10.0);
 	}
 
 	return 0;
